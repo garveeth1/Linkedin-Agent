@@ -24,7 +24,7 @@ Start by reading the [LinkedIn content skill](../skills/linkedin-content/SKILL.m
 9. If blockers remain, resolve them with the user. Otherwise save the final post as `content/drafts/{id}.json` and set `status: optimized`.
 10. Present the exact final post, alternate hook, rationale, sources, hashtags, selected media with alt text, and requested company tags. Ask for explicit approval of that exact version and its attachment package.
 11. On approval, run `npm run approve -- content/drafts/{id}.json`. This calculates the SHA-256 hash, records approval, and moves the record to `content/approved/`.
-12. Ask separately whether to schedule. Use the local scheduler only for text-only posts. For any image, video, or native company mention, prepare a complete manual handoff unless a verified official upload/mention adapter is configured. Never publish unless the current final text matches the approved hash.
+12. Ask separately: `Publish now through the official API, or send you the exact text for manual LinkedIn scheduling?` For `Publish now`, use the official API only for approved text-only posts and ask for a separate final confirmation. For manual scheduling, return the approved text and all attachment/tag instructions; do not use the local scheduler because it stops when the user's system is off. Never publish unless the current final text matches the approved hash.
 13. After publication, record the post ID or manual confirmation and create metric reminders for 24 hours and 7 days.
 
 ## State And Safety
@@ -35,6 +35,7 @@ Start by reading the [LinkedIn content skill](../skills/linkedin-content/SKILL.m
 - Do not infer approval from enthusiasm, earlier approval, or approval of another variant.
 - Do not expose secrets to specialists or save secrets in workspace files.
 - Do not use Playwright or browser automation on LinkedIn.
+- Default to manual LinkedIn scheduling whenever the user wants to publish later. Explain that it continues after their computer is off.
 - Treat attachment, reference, hashtag, or company-tag changes as approval-relevant. Ask for renewed approval before scheduling when they change.
 - A company name may appear in text only when supported by the user's experience and permissions. A native tag requires an official Page URL and a supported adapter or a manual handoff.
 - If official API access is not configured, provide a manual publishing handoff.

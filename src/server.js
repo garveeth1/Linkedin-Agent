@@ -12,7 +12,6 @@ import {
 } from "./oauth/linkedin-oauth.js";
 import { LinkedInClient } from "./publishing/linkedin-client.js";
 import { publishApprovedText } from "./publishing/publisher.js";
-import { scheduleApprovedRecord } from "./publishing/scheduler.js";
 
 const workspaceRoot = process.cwd();
 const approvedDirectory = path.resolve(workspaceRoot, "content", "approved");
@@ -80,14 +79,18 @@ async function renderHome(message = "") {
     ? "<p class=empty>No approved posts are waiting.</p>"
     : records.map(({ name, record }) => {
       const scheduledAt = record.publishing?.scheduled_at;
-      const scheduleMarkup = scheduledAt
-        ? `<p class=status>Scheduled for ${escapeHtml(scheduledAt)}. Keep this server running and LinkedIn authorized.</p>`
-        : `<form method=post action=/schedule>
+      const needsManualHandoff = (record.assets?.media?.length ?? 0) > 0
+        || (record.assets?.company_tag_requests?.length ?? 0) > 0;
+      const scheduleMarkup = needsManualHandoff
+        ? `<p class=status>Manual LinkedIn handoff required: upload the approved media and select the requested native company tag. This text-only scheduler is disabled for this post.</p>`
+        : scheduledAt
+        ? `<p class=status>Legacy local schedule: ${escapeHtml(scheduledAt)}. Keep this server running and LinkedIn authorized.</p>`
+        : `<p class=status>For a future post, copy this exact text into LinkedIn and use its native scheduler.</p>
+        <form method=post action=/publish-now>
           <input type=hidden name=csrf value="${csrfToken}">
           <input type=hidden name=record value="${escapeHtml(name)}">
-          <label>Publish at <input type=datetime-local name=scheduled_at required></label>
-          <label><input type=checkbox name=confirm value=schedule required> I confirm this exact approved post should be scheduled.</label>
-          <button type=submit ${accessToken ? "" : "disabled"}>Schedule post</button>
+          <label><input type=checkbox name=confirm value=publish required> I confirm this exact approved post should be published now.</label>
+          <button type=submit ${accessToken ? "" : "disabled"}>Publish now</button>
         </form>`;
       return `
       <article>
@@ -214,11 +217,11 @@ const server = createServer(async (request, response) => {
       });
     }
 
-    if (request.method === "POST" && url.pathname === "/schedule") {
+    if (request.method === "POST" && url.pathname === "/publish-now") {
       if (!accessToken) return send(response, 401, await renderHome("Authorize LinkedIn before publishing."));
       const form = await readForm(request);
-      if (form.get("csrf") !== csrfToken || form.get("confirm") !== "schedule") {
-        return send(response, 400, await renderHome("Schedule confirmation was invalid."));
+      if (form.get("csrf") !== csrfToken || form.get("confirm") !== "publish") {
+        return send(response, 400, await renderHome("Publish confirmation was invalid."));
       }
 
       const recordName = path.basename(form.get("record") ?? "");
@@ -228,9 +231,14 @@ const server = createServer(async (request, response) => {
 
       const recordPath = path.join(approvedDirectory, recordName);
       const record = JSON.parse(await readFile(recordPath, "utf8"));
-      const scheduledRecord = scheduleApprovedRecord(record, form.get("scheduled_at"));
-      await saveRecord(recordPath, scheduledRecord);
-      return send(response, 200, await renderHome(`Scheduled for ${scheduledRecord.publishing.scheduled_at}.`));
+      if ((record.assets?.media?.length ?? 0) > 0 || (record.assets?.company_tag_requests?.length ?? 0) > 0) {
+        return send(response, 400, await renderHome("Use the manual LinkedIn handoff for media or native company tags."));
+      }
+      const config = configuration();
+      const client = new LinkedInClient({ accessToken, apiVersion: config.apiVersion });
+      const publishedRecord = await publishApprovedText(record, { client, authorUrn: authorizedMember.authorUrn });
+      await saveRecord(recordPath, publishedRecord);
+      return send(response, 200, await renderHome(`Published successfully: ${publishedRecord.publishing.linkedin_post_id}`));
     }
 
     send(response, 404, "<h1>Not found</h1>");

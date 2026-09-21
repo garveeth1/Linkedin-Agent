@@ -36,8 +36,8 @@ Turn a real experience into a credible LinkedIn post without inventing facts or 
 
 Use this order:
 
-1. Official LinkedIn Posts API with `w_member_social` after explicit approval.
-2. An authorized scheduler after explicit approval.
-3. Manual handoff that opens LinkedIn and leaves paste and publication to the user.
+1. Ask the user which final action they want: `Publish now` or `Send me the text for manual LinkedIn scheduling`.
+2. For `Publish now`, use the official LinkedIn Posts API with `w_member_social` only after explicit approval and a separate publish confirmation.
+3. For manual scheduling, return the exact approved text, hashtags, and any attachment/tag instructions. The user schedules it in LinkedIn; do not run the local scheduler.
 
-The Posts API publishes immediately. Keep drafts and approval state locally, and send only approved content.
+The Posts API publishes immediately. Keep drafts and approval state locally, and send only approved content. Do not imply that a local scheduled job will run after the user's computer shuts down.

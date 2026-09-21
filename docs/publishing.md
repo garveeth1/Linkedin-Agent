@@ -2,6 +2,8 @@
 
 The workflow keeps drafts locally and sends only an explicitly approved, hash-matched final post to LinkedIn.
 
+See [the architecture view](architecture.md) for the end-to-end decision flow.
+
 ## Prerequisites
 
 1. Create a LinkedIn Developer application.
@@ -18,9 +20,9 @@ The workflow keeps drafts locally and sends only an explicitly approved, hash-ma
 4. On callback, verify the returned state before exchanging the authorization code.
 5. Keep the access token in server memory only. Restarting requires authorization again.
 6. Save the optimized record as JSON and run `npm run approve -- content/drafts/<record>.json` after the user approves the exact final text.
-7. Choose a future local date and time in the control panel, then explicitly confirm scheduling. The record remains hash-bound and is not sent to LinkedIn at this point.
-8. Keep the local server running and LinkedIn authorized. Every 30 seconds it checks due scheduled records and submits `lifecycleState: PUBLISHED` to the Posts API.
-9. Persist the returned `x-restli-id` immediately.
+7. Choose one final action: publish an approved text-only post now through the control panel, or use the exact approved text to schedule manually in LinkedIn.
+8. For a future LinkedIn post, use LinkedIn's native scheduler. It continues while the local server is stopped and supports media and native company tags.
+9. Persist the returned `x-restli-id` immediately for immediate API publication.
 
 ## Runtime Setup On Windows
 
@@ -47,6 +49,6 @@ Company names in post text are not native LinkedIn tags. A native tag requires a
 
 ## Scheduling Limits
 
-LinkedIn receives a scheduled post only when the local scheduler reaches its selected time. The control panel must remain running and authorized at that time; restarting it clears the in-memory access token, so authorize it again after a restart. A failed scheduled publication is recorded and is not retried automatically to avoid duplicates.
+The local app is for immediate API publication only. For posts scheduled later, copy the approved content into LinkedIn and use its native scheduler. This avoids missed posts when the local server is stopped and supports media and native company tags.
 
 Playwright may test an application UI against mocked API responses. It must not automate LinkedIn login, typing, posting, likes, comments, connections, or scraping.

@@ -1,0 +1,21 @@
+{
+  "name": "scrum-master-linkedin-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Human-approved LinkedIn content workflow and publishing adapter.",
+  "scripts": {
+    "start": "node src/server.js",
+    "approve": "node src/cli/approve-record.js",
+    "publish": "node src/cli/publish-approved.js",
+    "check": "node --check src/server.js && node --check src/publishing/approval.js && node --check src/publishing/linkedin-client.js && node --check src/publishing/publisher.js && node --check src/publishing/record-store.js && node --check src/publishing/scheduler.js && node --check src/oauth/linkedin-oauth.js && node --check src/cli/approve-record.js && node --check src/cli/publish-approved.js",
+    "test": "node --test",
+    "test:ui": "playwright test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

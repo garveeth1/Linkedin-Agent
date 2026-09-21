@@ -1,0 +1,34 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Private generated content
+content/ideas/*
+content/drafts/*
+content/approved/*
+content/metrics/*
+content/reviews/*
+content/media/*
+
+# Keep directory placeholders
+!content/ideas/.gitkeep
+!content/drafts/.gitkeep
+!content/approved/.gitkeep
+!content/metrics/.gitkeep
+!content/reviews/.gitkeep
+!content/media/.gitkeep
+
+# Local office temporary files
+~$*
+
+# Application output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log

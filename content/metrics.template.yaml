@@ -1,0 +1,25 @@
+content_id: ""
+linkedin_post_id: ""
+published_at: null
+audience: ""
+content_pillar: ""
+hook_type: ""
+format: "text"
+
+after_24_hours:
+  captured_at: null
+  impressions: null
+  reactions: null
+  comments: null
+  reposts: null
+  profile_views: null
+  audience_quality_notes: ""
+
+after_7_days:
+  captured_at: null
+  impressions: null
+  reactions: null
+  comments: null
+  reposts: null
+  profile_views: null
+  audience_quality_notes: ""
